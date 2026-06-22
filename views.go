@@ -27,7 +27,7 @@ var Templates Tmpl
 
 var layoutDir string
 
-var newViewData func(*http.Request, string, any) any
+var newViewData func(*http.Request, string, any) (any, error)
 
 // Sets layout directory where the template base files are stored.
 // All of this template files are included in each template.
@@ -37,14 +37,17 @@ func SetLayoutDir(dir string) {
 
 // Sets a user-defined function that returns standard struct passed to every template.
 // It should accept HTTP request, HTML title and data for additional template values.
-func NewViewData(f func(*http.Request, string, any) any) {
+func NewViewData(f func(*http.Request, string, any) (any, error)) {
 	newViewData = f
 }
 
 // Executes chosen named template and writes it to provided io.Writer.
 // This is the default way of executing templates in this library.
 func Execute(r *http.Request, w io.Writer, name string, title string, data any) error {
-	viewData := newViewData(r, title, data)
+	viewData, err := newViewData(r, title, data)
+	if err != nil {
+		return err
+	}
 	return Templates[name].RenderHtml(w, viewData)
 }
 
